@@ -54,6 +54,7 @@ def get_arguments():
         default=None,
         help="waypoint symbol",
     )
+
     return parser.parse_args()
 
 

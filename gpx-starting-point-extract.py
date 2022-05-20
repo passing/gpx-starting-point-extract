@@ -28,14 +28,14 @@ def get_arguments():
         type=str,
         nargs="+",
         metavar="INPUTFILE",
-        help="files to write",
+        help="GPX input files",
     )
     parser.add_argument(
         "--output",
         type=str,
         metavar="OUTPUTFILE",
         required=True,
-        help="file to write",
+        help="GPX output file",
     )
     parser.add_argument(
         "--bounds",
@@ -43,11 +43,18 @@ def get_arguments():
         help="add metadata with bounds",
     )
     parser.add_argument(
+        "--category",
+        type=str,
+        metavar="NAME",
+        default=None,
+        help="POI category (Garmin Extension)",
+    )
+    parser.add_argument(
         "--symbol",
         type=str,
         metavar="NAME",
         default=None,
-        help="symbol to use for waypoints",
+        help="waypoint symbol",
     )
     return parser.parse_args()
 
@@ -115,7 +122,7 @@ def get_waypoints_bounds(waypoints):
     return bounds
 
 
-def create_gpx(waypoints, symbol):
+def create_gpx(waypoints, category, symbol):
     # create root element
     gpx = ET.Element("gpx", gpx_attributes)
 
@@ -137,11 +144,18 @@ def create_gpx(waypoints, symbol):
         if symbol is not None:
             ET.SubElement(wpt, "sym").text = symbol
 
-        # add gpxx extension with address
+        # add gpxx waypoint extensions
         ext = ET.SubElement(wpt, "extensions")
         wpt_ext = ET.SubElement(ext, "gpxx:WaypointExtension")
+
+        # add gpxx address
         address = ET.SubElement(wpt_ext, "gpxx:Address")
         ET.SubElement(address, "gpxx:StreetAddress").text = waypoint["name"]
+
+        # add gpxx category when provided
+        if category is not None:
+            categories = ET.SubElement(wpt_ext, "gpxx:Categories")
+            ET.SubElement(categories, "gpxx:Category").text = category
 
     return gpx
 
@@ -167,7 +181,7 @@ def main():
     waypoints = get_first_waypoints_from_files(args.files)
 
     # create gpx from waypoints
-    gpx = create_gpx(waypoints, args.symbol)
+    gpx = create_gpx(waypoints, args.category, args.symbol)
 
     # add metadata with bounds
     if args.bounds:

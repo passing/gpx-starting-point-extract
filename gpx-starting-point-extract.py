@@ -10,15 +10,13 @@ gpx_attributes = {
     "version": "1.1",
     "creator": "https://github.com/passing/gpx-starting-point-extract",
     "xmlns": "http://www.topografix.com/GPX/1/1",
-    "xmlns:gpxx": "http://www.garmin.com/xmlschemas/GpxExtensions/v3"
+    "xmlns:gpxx": "http://www.garmin.com/xmlschemas/GpxExtensions/v3",
 }
-
-precision = 9
-
 namespaces = {
     "1.0": "http://www.topografix.com/GPX/1/0",
     "1.1": "http://www.topografix.com/GPX/1/1",
 }
+precision = 9
 
 
 def get_arguments():

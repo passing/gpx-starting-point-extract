@@ -10,10 +10,10 @@ gpx_attributes = {
     "version": "1.1",
     "creator": "https://github.com/passing/gpx-starting-point-extract",
     "xmlns": "http://www.topografix.com/GPX/1/1",
+    "xmlns:gpxx": "http://www.garmin.com/xmlschemas/GpxExtensions/v3"
 }
 
 precision = 9
-symbol = "Flag"
 
 namespaces = {
     "1.0": "http://www.topografix.com/GPX/1/0",
@@ -41,6 +41,13 @@ def get_arguments():
         "--bounds",
         action="store_true",
         help="add metadata with bounds",
+    )
+    parser.add_argument(
+        "--symbol",
+        type=str,
+        metavar="NAME",
+        default=None,
+        help="symbol to use for waypoints",
     )
     return parser.parse_args()
 
@@ -108,7 +115,7 @@ def get_waypoints_bounds(waypoints):
     return bounds
 
 
-def create_gpx(waypoints):
+def create_gpx(waypoints, symbol):
     # create root element
     gpx = ET.Element("gpx", gpx_attributes)
 
@@ -121,9 +128,20 @@ def create_gpx(waypoints):
         )
         ET.SubElement(wpt, "name").text = waypoint["basename"]
         ET.SubElement(wpt, "desc").text = waypoint["name"]
-        ET.SubElement(wpt, "sym").text = symbol
+
+        # add elevation when available
         if waypoint["ele"] is not None:
             ET.SubElement(wpt, "ele").text = str(waypoint["ele"])
+
+        # add symbol when provided
+        if symbol is not None:
+            ET.SubElement(wpt, "sym").text = symbol
+
+        # add gpxx extension with address
+        ext = ET.SubElement(wpt, "extensions")
+        wpt_ext = ET.SubElement(ext, "gpxx:WaypointExtension")
+        address = ET.SubElement(wpt_ext, "gpxx:Address")
+        ET.SubElement(address, "gpxx:StreetAddress").text = waypoint["name"]
 
     return gpx
 
@@ -149,7 +167,7 @@ def main():
     waypoints = get_first_waypoints_from_files(args.files)
 
     # create gpx from waypoints
-    gpx = create_gpx(waypoints)
+    gpx = create_gpx(waypoints, args.symbol)
 
     # add metadata with bounds
     if args.bounds:
